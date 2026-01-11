@@ -1,6 +1,12 @@
 import { kv } from '@vercel/kv';
 const crypto = require('crypto');
 
+// YOUR PAID PRODUCT IDs
+const PAID_PRODUCT_IDS = [
+  'prod_1vgh0MwjNAYGN',  // Your paid product
+  // Add more product IDs here if you have multiple paid tiers
+];
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -29,16 +35,31 @@ export default async function handler(req, res) {
       const licenseKey = data.license_key;
       const membershipId = data.id;
       const userId = data.user_id;
+      const productId = data.product_id;
+      const planId = data.plan_id;
 
-      // Store in KV database (persists forever!)
+      // CHECK IF THIS IS A PAID PRODUCT
+      const isPaidProduct = PAID_PRODUCT_IDS.includes(productId);
+
+      if (!isPaidProduct) {
+        console.log(`Ignoring free tier purchase: ${licenseKey} (product: ${productId})`);
+        return res.status(200).json({ 
+          success: true, 
+          message: 'Free tier membership - not activated' 
+        });
+      }
+
+      // Store in KV database (only paid products)
       await kv.set(`license:${licenseKey}`, {
         membershipId,
         userId,
+        productId,
+        planId,
         status: 'active',
         activatedAt: new Date().toISOString()
       });
 
-      console.log(`License activated: ${licenseKey}`);
+      console.log(`License activated: ${licenseKey} (product: ${productId})`);
     }
 
     // Handle membership deactivated (cancelled/expired)
