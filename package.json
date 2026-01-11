@@ -1,8 +1,10 @@
 {
   "name": "whop-license-validator",
   "version": "1.0.0",
-  "description": "WHOP license validation server for ATAS indicator",
-  "dependencies": {},
+  "description": "WHOP license validation server for ATAS indicator with persistent storage",
+  "dependencies": {
+    "@vercel/kv": "^2.0.0"
+  },
   "engines": {
     "node": "24.x"
   }
