@@ -1,8 +1,4 @@
-const crypto = require('crypto');
-
-// In-memory storage (same as webhook handler)
-// NOTE: In production, use a persistent database
-const activeLicenses = new Map();
+import { kv } from '@vercel/kv';
 
 export default async function handler(req, res) {
   // Enable CORS for the indicator to call this
@@ -25,8 +21,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ valid: false, error: 'No license key provided' });
     }
 
-    // Check if license exists and is active
-    const license = activeLicenses.get(license_key);
+    // Check KV database for license
+    const license = await kv.get(`license:${license_key}`);
 
     if (!license) {
       return res.status(200).json({ 
