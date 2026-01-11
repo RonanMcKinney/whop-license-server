@@ -1,0 +1,9 @@
+{
+  "name": "whop-license-validator",
+  "version": "1.0.0",
+  "description": "WHOP license validation server for ATAS indicator",
+  "dependencies": {},
+  "engines": {
+    "node": "18.x"
+  }
+}
