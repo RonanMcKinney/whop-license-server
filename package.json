@@ -4,6 +4,6 @@
   "description": "WHOP license validation server for ATAS indicator",
   "dependencies": {},
   "engines": {
-    "node": "18.x"
+    "node": "24.x"
   }
 }
