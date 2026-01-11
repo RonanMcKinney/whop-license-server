@@ -1,7 +1,5 @@
+import { kv } from '@vercel/kv';
 const crypto = require('crypto');
-
-// In-memory storage (for production, use a database like Vercel KV or Upstash Redis)
-const activeLicenses = new Map();
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -32,7 +30,8 @@ export default async function handler(req, res) {
       const membershipId = data.id;
       const userId = data.user_id;
 
-      activeLicenses.set(licenseKey, {
+      // Store in KV database (persists forever!)
+      await kv.set(`license:${licenseKey}`, {
         membershipId,
         userId,
         status: 'active',
@@ -46,7 +45,8 @@ export default async function handler(req, res) {
     if (event === 'membership.deactivated') {
       const licenseKey = data.license_key;
 
-      activeLicenses.delete(licenseKey);
+      // Delete from KV database
+      await kv.del(`license:${licenseKey}`);
       console.log(`License deactivated: ${licenseKey}`);
     }
 
@@ -55,11 +55,11 @@ export default async function handler(req, res) {
       const licenseKey = data.license_key;
 
       if (data.cancel_at_period_end === true) {
-        // Mark as pending cancellation but keep active
-        const license = activeLicenses.get(licenseKey);
+        // Update status in KV database
+        const license = await kv.get(`license:${licenseKey}`);
         if (license) {
           license.status = 'pending_cancellation';
-          activeLicenses.set(licenseKey, license);
+          await kv.set(`license:${licenseKey}`, license);
         }
         console.log(`License pending cancellation: ${licenseKey}`);
       }
